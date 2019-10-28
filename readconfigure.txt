@@ -1,0 +1,57 @@
+rouuter isp -
+
+interface GigabitEthernet0/0
+ ip address 8.8.8.1 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet0/1
+ ip address 203.1.1.1 255.255.255.0
+ duplex auto
+ speed auto
+router ospf 100
+ router-id 1.1.1.1
+ log-adjacency-changes
+ network 203.1.1.0 0.0.0.255 area 0
+ network 8.8.8.0 0.0.0.255 area 0
+!
+
+
+googleserver - 
+...
+8.8.8.8
+255.255.255.0
+8.8.8.1
+firewall
+ciscoasa55 - 
+ciscoasa55(config)-interface Vlan1
+ nameif inside
+ security-level 100
+ ip address 172.16.1.1 255.255.255.0
+!
+interface Vlan2
+ nameif outside
+ security-level 0
+ ip address 203.1.1.2 255.255.255.0
+!
+object network lan
+ subnet 172.16.1.0 255.255.255.0
+!
+route outside 0.0.0.0 0.0.0.0 230.1.1.1 1
+!
+access-list bablu extended permit tcp any any
+access-list bablu extended permit icmp any any
+!
+!
+access-group bablu in interface outside
+access-group bablu in interface inside
+object network lan
+ nat (inside,outside) dynamic interface
+
+dhcpd dns 8.8.8.8
+dhcpd auto_config outside
+!
+dhcpd address 172.16.1.5-172.16.1.6 inside
+dhcpd dns 8.8.8.8 interface inside
+dhcpd enable inside
+ 
